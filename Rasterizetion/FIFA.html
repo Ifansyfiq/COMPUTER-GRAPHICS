@@ -1,0 +1,853 @@
+<head>
+    <!--Group Information-->
+    <h3>Computer Graphic Group Assignment (FIFA)</h3>
+   
+    <style>
+    table, th, td
+                {
+                    border: 1px solid red;
+                }
+                th
+                {
+                    text-align: center;
+                }
+    
+    </style>
+    <script src="gl-matrix-min.js"></script>
+    <script>
+        function main() {
+            const canvas = document.querySelector("#glCanvas");
+            // Initialize the GL context
+            const gl = canvas.getContext("webgl");
+        
+            // Only continue if WebGL is available and working
+            if (gl === null) {
+                alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+                return;
+            }
+        
+            // Vertex shader program
+            const vsSource = `
+                attribute vec4 aVertexPosition;
+                uniform mat4 uModelViewMatrix;
+                uniform mat4 uProjectionMatrix;
+                void main() {
+                    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+                }
+            `;
+
+            // Fragment shader program 
+            const fsSource = `
+                void main() {
+                    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); 
+                }
+            `;
+
+            // Initialize a shader program; this is where all the lighting
+            // for the vertices and so forth is established.
+            const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+            // Collect all the info needed to use the shader program.
+            // Look up which attribute our shader program is using
+            // for aVertexPosition and look up uniform locations.
+            const programInfo = {
+                program: shaderProgram,
+                attribLocations: {
+                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                },
+                uniformLocations: {
+                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                },
+            };
+
+            // Now create an array of positions for the objects
+            positions = [
+
+            // right trapezium
+            2.4, 1.17,
+            2, -1.4,
+            0.48,-1.4,
+            0.48, 0.78,
+
+            // atap (IRFAN SYAFIQ)
+            -2.7, 0.15,
+            -2.75, 0.3,
+            
+            0.14,0.87,
+            
+            -2.2,1.68,
+            -2.13,1.83,
+            
+            0.4,0.95,
+
+            2.8,1.43,   
+            2.8,1.25,
+
+            // lantai (IRFAN SYAFIQ)
+            -2.8,-1.4,
+            3,-1.4,
+            -2.8,-1.45,
+            3,-1.45,
+
+            // trapezium kiri (IRFAN SYAFIQ)
+            -0.3, -1.4,
+            -2.5, -1.4,
+            -2.5, -1.25,
+            -0.8,-1.25,
+            -0.3, -1.4,
+            -0.3, -0.2,
+            -0.8, -1.25,
+            -0.8, 0.1,
+            -0.3, -0.2,
+            
+            0.48, -0.2,
+            0.48, 0.78,
+            0.3,-0.2,
+            0.48,-1.4,
+            0.3,-1.4,
+            0.48,0.78,
+            0.3, 0.1,
+
+            -2.5, 0.1,
+            -2.5, 0.2,
+            0.48, 0.78,
+            -0.8, 0.1,
+            0.3,-0.2,
+            
+ 
+            // balcony atas (IMRAN)
+            0.01, 0.61,
+            -2,0.87,
+            -1, 0.65,
+            0.14,0.87,
+            -1, 1.25,
+            -2.05, 1.63,
+            
+            -2, 1.25,
+            -2.05, 0.44,
+            -2, 0.45,
+            0.14, 0.87,
+            -2, 0.87,
+
+            // bingkai tingkap bawah kiri (IRFAN SYAFIQ)
+            -2.50, -1.21,
+            -0.85, -1.21,
+            -0.85, 0.05,
+            -2.55, 0.05,
+
+            // tingkap bawah kiri belah dalam (IRFAN SYAFIQ)
+             //X1
+            -2.55, -0.23,
+            -0.85, -0.23,
+             //Y1
+            -1.13,0.05,
+            -1.13,-1.2,
+             //Y2
+            -1.43,0.05,
+            -1.43,-1.2,
+            //Y3
+            -1.73,0.05,
+            -1.73,-1.2,
+            //Y4
+            -2.03, 0.05,
+            -2.03, -1.2,
+            //Y5
+            -2.29, 0.05,
+            -2.29, -1.2,
+
+            // bingkai tingkap balcony atas (IRFAN SYAFIQ)
+
+            -1.05, 1.0,
+            -1.05, 0.9,
+
+            -1.95, 0.9,
+            -1.95, 0.9,
+
+            -1.95, 1.2,
+            -1.95, 1.2,
+
+            -1.05, 1.2,
+            -1.05, 1.2,
+
+            -1.05, 0.9,
+            -1.05, 0.9,
+ 
+
+            //tingkap balcony belah dalam (IMRAN)
+            //Y1
+            -1.35, 1.2,
+            -1.35, 0.9,
+            //Y2
+            -1.65, 1.2,
+            -1.65, 0.9,
+            
+            //tapak balcony (AKMAL)
+            -2.7, 0.44,
+            -2.05, 0.44,
+            -2.7, 0.3,
+
+            // trapezium kanan (start dari layer bawah) (AKMAL)
+
+            //layer 1st  (AKMAL)
+            0.4, -1.2, 
+            2.03, -1.2, 
+            0.4, -1.365,
+            2, -1.365,
+
+            // layer 2nd (AKMAL)
+            0.4, -1.15,
+            2.04, -1.15, 
+            0.4, -0.93,
+            2.08, -0.93,
+
+            //layer 3rd kiri (AKMAL)
+            0.4, -0.65,
+            0.9, -0.65, 
+            0.4, -0.88,
+            0.9, -0.88,
+
+            //layer 3rd kanan (AKMAL)
+            1.7, -0.65, 
+            2.11, -0.65,
+            1.7, -0.88,
+            2.08, -0.88, 
+
+            //layer 4th kiri (AKMAL)
+            0.4, -0.37,
+            0.9, -0.37,
+            0.4, -0.60,
+            0.9, -0.60,
+
+            //layer 4th kanan (AKMAL)
+            1.7, -0.37,
+            2.16, -0.37,
+            1.7, -0.60,
+            2.13, -0.60, //(AKMAL end)
+
+            // trapezium kanan (IRFAN SUHAIMI start)
+            //Strip 5th kiri (5L)
+            0.4, -0.09,
+            0.9, -0.09,
+            0.4, -0.32,
+            0.9, -0.32,
+
+            //Strip 5th kanan (5R) (IRFAN SUHAIMI)
+            1.7, -0.08,
+            2.21, -0.08,
+            1.7, -0.32,
+            2.18, -0.32,
+            
+            // Strip 6th kiri (6R) (IRFAN SUHAIMI)
+            0.4, 0.19,
+            0.9, 0.19,
+            0.4, -0.04,
+            0.9, -0.04,
+
+            //Strip 6th kanan (6R) (IRFAN SUHAIMI)
+            1.7, 0.20,
+            2.24, 0.20,
+            1.7, -0.04,
+            2.22, -0.04,
+
+            //Strip 7th kiri (7L) (IRFAN SUHAIMI)
+            0.4, 0.47,
+            0.9, 0.47,
+            0.4, 0.24,
+            0.9, 0.24,
+
+            //Strip 7th kanan (7R) (IRFAN SUHAIMI)
+            1.7, 0.48,
+            2.29, 0.48,
+            1.7, 0.24,
+            2.26, 0.24,
+
+            //Strip 8th (IRFAN SUHAIMI)
+            0.4, 0.75,
+            2.34, 0.76,
+            0.4, 0.52,
+            2.31, 0.52,
+
+            //Strip 9th (IRFAN SUHAIMI)
+            2.40, 1.17,
+            0.62, 0.80,
+            2.35, 0.80,
+
+            // tingkap kanan trapezium (IRFAN SUHAIMI)
+            // window 1 (W1)
+            0.953, 0.47,
+            1.300, 0.47,
+            1.300, 0.075,
+            0.953, 0.075,
+            // (W2)  (IRFAN SUHAIMI)
+            1.304, 0.47,
+            1.647, 0.47,
+            1.647, 0.075,
+            1.304, 0.075,
+            // (W3) (IRFAN SUHAIMI)
+            0.953, 0.071,
+            1.300, 0.071,
+            1.300, -0.320,
+            0.953, -0.320,
+            // (W4) (IRFAN SUHAIMI)
+            1.304, 0.071,
+            1.647, 0.071,
+            1.647, -0.320,
+            1.304, -0.320,
+            // (W5) (IRFAN SUHAIMI)
+            0.953, -0.324,
+            1.300, -0.324,
+            1.300, -0.880,
+            0.953, -0.880,
+            // (W6) (IRFAN SUHAIMI)
+            1.304, -0.324,
+            1.647, -0.324,
+            1.647, -0.880,
+            1.304, -0.880,
+            // (IRFAN SUHAIMI end)
+
+            // (AMY SHUHADAH (pintu))
+            // garisan pintu
+            -0.25,-0.239,
+            0.25,-0.239,
+            0.25,-1.365,
+            -0.25,-1.365,
+            // Amy end (pintu)
+
+            //top balcony outdoor (IMRAN)
+            //upper line
+            -2.75,0.8,
+            -1.0,0.8,
+
+            //inside loop (IMRAN)
+            //1
+            -2.67,0.8,
+            -2.67,0.43,
+            //2 
+            -2.53,0.8,
+            -2.53,0.43,
+            //3
+            -2.38,0.8,
+            -2.38,0.43,
+            //4
+            -2.24,0.8,
+            -2.24,0.43,
+            //5
+            -2.1,0.8,
+            -2.1,0.43, //(IMRAN end)
+
+            // (AMY SHUHADAH start)
+            // tombol pintu
+            -0.15,-0.82,
+            -0.15,-0.88,
+            -0.12,-0.84,
+            -0.10,-0.86,
+
+            -0.11,-0.86,
+            -0.15,-0.88,
+            -0.09,-0.87,
+            -0.11,-0.933,
+
+            -0.12,-0.933,
+            -0.15,-0.88,
+            -0.13,-0.94,
+            -0.15,-0.945,
+            
+            -0.15,-0.945,
+            -0.15,-0.88,
+            -0.17,-0.94,
+            -0.18,-0.92,
+
+            -0.19,-0.92,
+            -0.15,-0.88,
+            -0.21,-0.88,
+            -0.19,-0.85,
+            
+            -0.19,-0.85,
+            -0.15,-0.88,
+            -0.17,-0.83,
+            -0.15,-0.82,
+            // (tombol pintu end) - AMY
+
+            // bush kanan 1 (AMY SHUHADAH)
+            2.08,-0.91,
+            2.0,-1.45,
+            2.15,-0.87,
+            2.17,-0.86,
+
+            2.17,-0.86,
+            2.0,-1.45,
+            2.19,-0.85,
+            2.22,-0.84,
+
+            2.22,-0.84,
+            2.0,-1.45,
+            2.25,-0.835,
+            2.28,-0.845,
+
+            2.28,-0.845,
+            2.0,-1.45,
+            2.31,-0.86,
+            2.34,-0.87,
+
+            2.34,-0.87,
+            2.0,-1.45,
+            2.36,-0.90,
+            2.38,-0.93,
+
+            2.38,-0.93,
+            2.0,-1.45,
+            2.43,-1.0,
+            2.46,-1.03,
+
+            2.46,-1.03,
+            2.0,-1.45,
+            2.47,-1.05,
+            2.48,-1.07,
+
+            2.48,-1.07,
+            2.0,-1.45,
+            2.51,-1.12,
+            2.51,-1.45,
+
+            // bush kanan 2 (AMY SHUHADAH)
+            2.51,-1.12,
+            2.51,-1.45,
+            2.53,-1.12,
+            2.55,-1.13,
+
+            2.55,-1.13,
+            2.51,-1.45,
+            2.57,-1.14,
+            2.60,-1.15,
+
+            2.60,-1.15,
+            2.51,-1.45,
+            2.62,-1.17,
+            2.65,-1.19,
+
+            2.65,-1.19,
+            2.51,-1.45,
+            2.67,-1.21,
+            2.69,-1.23,
+
+            2.69,-1.23,
+            2.51,-1.45,
+            2.71,-1.25,
+            2.74,-1.28,
+
+            2.74,-1.28,
+            2.51,-1.45,
+            2.75,-1.30,
+            2.76,-1.32,
+
+            2.76,-1.32,
+            2.51,-1.45,
+            2.77,-1.34,
+            2.78,-1.36,
+
+            2.78,-1.36,
+            2.51,-1.45,
+            2.79,-1.38,
+            2.80,-1.40,
+            // AMY SHUHADAH end (bush kanan 1 & 2)
+
+            ];
+
+            // Here's where we call the routine that builds all the
+            // objects we'll be drawing.
+            const buffers = initBuffers(gl);
+            drawScene(gl, programInfo, buffers);
+
+            // Draw the scene
+
+            primitive = gl.LINE_LOOP;
+            offset = 0;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            primitive = gl.LINE_LOOP;
+            offset = 4;
+            vertexCount = 8; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // lantai (IRFAN SYAFIQ)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 12;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // trapezium kiri (IRFAN SYAFIQ)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 16;
+            vertexCount = 21; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // balcony atas (IMRAN)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 38;
+            vertexCount = 10; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // bingkai tingkap bawah kiri (IRFAN SYAFIQ)
+            primitive = gl.LINE_LOOP;
+            offset = 48;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+            
+            // tingkap bawah kiri belah dalam (IRFAN SYAFIQ)
+            primitive = gl.LINES;
+            offset = 50;
+            vertexCount = 14; 
+            gl.drawArrays(primitive, offset, vertexCount);
+           
+            // bingkai tingkap balcony atas (IRFAN SYAFIQ)
+            primitive = gl.LINES;
+            offset = 65;
+            vertexCount = 8;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // tingkap balcony belah dalam (IMRAN)
+            primitive = gl.LINES;
+            offset = 70;
+            vertexCount =8;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // tapak balcony (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 78;
+            vertexCount= 3;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // trapezium kanan (start dari Strip bawah (1st)) (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 81;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 2nd bawah (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 85;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 3rd kiri (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 89;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // Strip 3rd kanan (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 93;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 4th kiri (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 97;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 4th kanan (AKMAL)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 101;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+            //(AKMAL end)
+
+            // trapezium kanan (IRFAN SUHAIMI start)
+            //Strip 5th kiri 
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 105;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+            
+            //Strip 5th kanan (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 109;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 6th kiri (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 113;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 6th kanan (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 117;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 7th kiri (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 121;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 7th kanan (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 125;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 8th  (IRFAN SUHAIMI) 
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 129;
+            vertexCount = 4;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //Strip 9th (IRFAN SUHAIMI)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 133;
+            vertexCount = 3;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // tingkap kanan trapezium (IRFAN SUHAIMI)
+            // W1
+            primitive = gl.LINE_LOOP;
+            offset = 136;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // W2 (IRFAN SUHAIMI)
+             primitive = gl.LINE_LOOP;
+            offset = 140;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // W3 (IRFAN SUHAIMI)
+            primitive = gl.LINE_LOOP;
+            offset = 144;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // W4 (IRFAN SUHAIMI)
+            primitive = gl.LINE_LOOP;
+            offset = 148;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // W5 (IRFAN SUHAIMI)
+            primitive = gl.LINE_LOOP;
+            offset = 152;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+
+            // W6 (IRFAN SUHAIMI)
+            primitive = gl.LINE_LOOP;
+            offset = 156;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+            // (IRFAN SUHAIMI end)
+        
+            // (AMY SHUHADAH (pintu))
+            // garisan pintu
+            primitive = gl.LINE_LOOP;
+            offset = 160;
+            vertexCount = 4; 
+            gl.drawArrays(primitive, offset, vertexCount);
+            // AMY end (pintu)
+
+
+            // luar balcony atas (IMRAN)
+            //upper line
+            primitive = gl.LINES;
+            offset = 164;
+            vertexCount = 2;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            //inside (IMRAN)
+            primitive = gl.LINES;
+            offset = 166;
+            vertexCount = 10;
+            gl.drawArrays(primitive, offset,vertexCount);
+            //(IMRAN end)
+
+            // (AMY SHUHADAH start)
+            //tombol pintu
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 176;
+            vertexCount = 24;
+            gl.drawArrays(primitive, offset,vertexCount);
+            // (tombol pintu end) - AMY
+
+            // bush kanan 1 (AMY SHUHADAH)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 200;
+            vertexCount = 32;
+            gl.drawArrays(primitive, offset,vertexCount);
+
+            // bush kanan 2 (AMY SHUHADAH)
+            primitive = gl.TRIANGLE_STRIP;
+            offset = 232;
+            vertexCount = 32;
+            gl.drawArrays(primitive, offset,vertexCount);
+            
+        }
+        
+        var positions, offset, vertexCount, primitive;
+        window.onload = main;
+
+        // ########################################### //
+        // initBuffers 
+        //
+        // Initialize the buffers we'll need. For this demo, we just
+        // have one object -- a simple two-dimensional square.
+        //
+        function initBuffers(gl) {
+
+            // Create a buffer for the square's positions.
+            const positionBuffer = gl.createBuffer();
+
+            // Select the positionBuffer as the one to apply buffer
+            // operations to from here out.
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+            // Now pass the list of positions into WebGL to build the
+            // shape. We do this by creating a Float32Array from the
+            // JavaScript array, then use it to fill the current buffer.
+            gl.bufferData(gl.ARRAY_BUFFER,
+                        new Float32Array(positions),
+                        gl.STATIC_DRAW);
+
+            return {
+                position: positionBuffer,
+            };
+        }
+
+        // ########################################### //
+        // Draw the scene.
+        //
+        function drawScene(gl, programInfo, buffers) {
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+            gl.clearDepth(1.0);                 // Clear everything
+            gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+            gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+            // Clear the canvas before we start drawing on it.
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // Create a perspective matrix, a special matrix that is
+            // used to simulate the distortion of perspective in a camera.
+            // Our field of view is 45 degrees, with a width/height
+            // ratio that matches the display size of the canvas
+            // and we only want to see objects between 0.1 units
+            // and 100 units away from the camera.
+            const fieldOfView = 45 * Math.PI / 180;   // in radians
+            const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+            const zNear = 0.1;
+            const zFar = 100.0;
+            const projectionMatrix = mat4.create();
+
+            // note: glmatrix.js always has the first argument
+            // as the destination to receive the result.
+            mat4.perspective(projectionMatrix,
+                            fieldOfView,
+                            aspect,
+                            zNear,
+                            zFar);
+
+            // Set the drawing position to the "identity" point, which is
+            // the center of the scene.
+            const modelViewMatrix = mat4.create();
+
+            // Now move the drawing position a bit to where we want to
+            // start drawing the square.
+            mat4.translate(modelViewMatrix,     // destination matrix
+                            modelViewMatrix,     // matrix to translate
+                            [0.0, 0.0, -6.0]);  // amount to translate 
+
+            // Tell WebGL how to pull out the positions from the position
+            // buffer into the vertexPosition attribute.
+            {
+                const numComponents = 2;
+                const type = gl.FLOAT;
+                const normalize = false;
+                const stride = 0;
+                const offset = 0;
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.vertexPosition,
+                    numComponents,
+                    type,
+                    normalize,
+                    stride,
+                    offset);
+                gl.enableVertexAttribArray(
+                    programInfo.attribLocations.vertexPosition);
+            }
+
+            // Tell WebGL to use our program when drawing
+            gl.useProgram(programInfo.program);
+
+            // Set the shader uniforms
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.projectionMatrix,
+                false,
+                projectionMatrix);
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.modelViewMatrix,
+                false,
+                modelViewMatrix);
+
+            {
+                //console.log(offset);
+                //console.log(vertexCount);
+                //console.log(primitive);
+                //gl.drawArrays(primitive, offset, vertexCount);
+            }
+        }
+
+        // ########################################### //
+        // Initialize a shader program, so WebGL knows how to draw our data
+        //
+        function initShaderProgram(gl, vsSource, fsSource) {
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            // Create the shader program
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+
+            // If creating the shader program failed, alert
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                return null;
+            }
+
+            return shaderProgram;
+        }
+
+        // ########################################### //
+        // creates a shader of the given type, uploads the source and
+        // compiles it.
+        //
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+
+            // Send the source to the shader object
+            gl.shaderSource(shader, source);
+
+            // Compile the shader program
+            gl.compileShader(shader);
+
+            // See if it compiled successfully
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+
+            return shader;
+        }
+    </script>
+</head>
+
+<body>
+  <canvas id="glCanvas" width="640" height="480"></canvas>
+</body>
